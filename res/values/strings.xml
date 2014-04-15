@@ -3,4 +3,7 @@
     <string name="app_name">Bats! Password Manager</string>
     <string name="btn_unlock">Unlock</string>
     <string name="hint_password">Master Password</string>
+    <string name="wrong_password">Incorrect Password</string>
+    <string name="new_button">New</string>
+    <string name="done_string">Done</string>
 </resources>
