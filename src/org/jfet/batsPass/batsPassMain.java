@@ -61,7 +61,7 @@ public class batsPassMain extends Activity {
     	} catch (SQLiteException ex) {
     	    passDB = null;
     	} finally {
-    	    clearPassword(thePass);
+    	    Arrays.fill(thePass, 'Z');
     	    if (null == passDB) {
     	        ((EditText) findViewById(R.id.password)).setHint(R.string.wrong_password);
     	        return;
@@ -150,12 +150,6 @@ public class batsPassMain extends Activity {
     
     public void addButton(View view) {
         return;
-    }
-    
-    private void clearPassword(char[] p) {
-        for (int i=0; i<p.length; i++) {
-            p[i]='Z';
-        }
     }
     
     @SuppressLint("ValidFragment")
