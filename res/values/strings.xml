@@ -6,4 +6,11 @@
     <string name="wrong_password">Incorrect Password</string>
     <string name="new_button">New</string>
     <string name="done_string">Done</string>
+    <string name="cancel_string">Cancel</string>
+    <string name="ok_string">OK</string>
+    <string name="hint_service">Service Name</string>
+    <string name="hint_uid">User ID (optional)</string>
+    <string name="hint_pw">Password</string>
+    <string name="fill_dict">Dict</string>
+    <string name="fill_rand">Rand</string>
 </resources>

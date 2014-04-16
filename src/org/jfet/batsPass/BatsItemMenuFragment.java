@@ -11,10 +11,9 @@ import android.os.Bundle;
 public abstract class BatsItemMenuFragment extends DialogFragment {
 	final String service;
 	final String id;
-	final static CharSequence[] options = new CharSequence[]{"Edit","Duplicate","Delete","Cancel"};
+	final static CharSequence[] options = new CharSequence[]{"Edit","Delete","Cancel"};
 	
 	public abstract void onEdit(DialogInterface dialog);
-	public abstract void onDuplicate(DialogInterface dialog);
 	public abstract void onDelete(DialogInterface dialog);
 
 	public BatsItemMenuFragment (String id, String service) {
@@ -37,8 +36,7 @@ public abstract class BatsItemMenuFragment extends DialogFragment {
 			public void onClick(DialogInterface dialog, int which) {
 				switch (which) {
 				case 0: onEdit(dialog); break;
-				case 1: onDuplicate(dialog); break;
-				case 2: onDelete(dialog); break;
+				case 1: onDelete(dialog); break;
 				default:
 					dialog.cancel();
 				}

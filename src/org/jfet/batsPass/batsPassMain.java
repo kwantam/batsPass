@@ -1,6 +1,7 @@
 package org.jfet.batsPass;
 
 import java.io.File;
+import java.nio.CharBuffer;
 import java.util.Arrays;
 
 import android.app.Activity;
@@ -25,12 +26,13 @@ import net.sqlcipher.database.SQLiteDatabase;
 import net.sqlcipher.database.SQLiteException;
 
 public class batsPassMain extends Activity {
-	final static String[] fragTags = new String[]{ "bpItemDlg", "bpItemMenu", "bpItemNew", "bpItemEdit", "bpConfirm", "bpTopMenu" };
-	final static long dlgTimeout = 10000;
+	final static String[] fragTags = new String[]{ "bpItemDlg", "bpItemMenu", "bpItem", "bpConfirm", "bpTopMenu" };
+	final static long dlgTimeout = 30000;
 
 	private SQLiteDatabase passDB = null;
-	private SecretTimeout sTimeout = null;
+	SecretTimeout sTimeout = null;
 	private Handler uiHandler = null;
+	private BatsPassGen gen = null;
 
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -39,7 +41,16 @@ public class batsPassMain extends Activity {
 
 		setContentView(R.layout.main);
 		
+		// handler for messages from other threads
 		uiHandler = new QuitHandler(Looper.getMainLooper());
+		// preload the dictionary in another thread
+		(new Thread() {
+			public void run() {
+				BatsPassGenDict.getInstance(batsPassMain.this);
+				batsPassMain.this.uiHandler.obtainMessage(1,0,0).sendToTarget();
+			}
+		}).start();
+		// timer thread
 		sTimeout = new SecretTimeout();
 		sTimeout.start();
 	}
@@ -114,13 +125,12 @@ public class batsPassMain extends Activity {
 			final String srvStr = c.getString(1);
 			b.setText(srvStr);
 			b.setOnClickListener(new View.OnClickListener() {
-				public void onClick(View v) { showPassInfo(v, idStr); }
+				public void onClick(View v) { showPass(v, idStr); }
 			} );
 			b.setOnLongClickListener(new View.OnLongClickListener() {
 				public boolean onLongClick(final View v) {
 					final DialogFragment dlg = new BatsItemMenuFragment(idStr, srvStr) {
 						public void onEdit(DialogInterface dialog) { editPass(v, idStr); }
-						public void onDuplicate(DialogInterface dialog) { duplicatePass(v, idStr); }
 						public void onDelete(DialogInterface dialog) { deletePass(v, idStr); }
 					};
 					dlg.show(getFragmentManager(), fragTags[1]);
@@ -138,15 +148,24 @@ public class batsPassMain extends Activity {
 		return;
 	}
 	
-	private void duplicatePass(View v, String id) {
-		return;
-	}
-	
 	private void deletePass(View v, String id) {
 		return;
 	}
 
-	private void showPassInfo(View v, String id) {
+	public void newPass(View v) {
+		final DialogFragment dlg = new BatsItemFragment(null) {
+			public void sendInterrupt() { sTimeout.interrupt(); }
+			public void onComplete(ContentValues cVals) { batsPassMain.this.addEntry(cVals); }
+		};
+		dlg.show(getFragmentManager(), fragTags[2]);
+	}
+	
+	private void addEntry(ContentValues cVals) {
+		passDB.insert("pass", null, cVals);
+		cVals.clear();
+	}
+
+	private void showPass(View v, String id) {
 		if (null == passDB) {
 			setContentView(R.layout.main);
 			return;
@@ -179,7 +198,9 @@ public class batsPassMain extends Activity {
 		Arrays.fill(uid.data,'Z');
 		Arrays.fill(pw.data,'Z'); 
 
-		final DialogFragment dlg = new BatsPassDialogFragment(msg,service.data);
+		final DialogFragment dlg = new BatsPassDialogFragment(msg,service.data) {
+			public void sendInterrupt() { sTimeout.interrupt(); }
+		};
 		dlg.show(getFragmentManager(), fragTags[0]);
 	}
 
@@ -189,10 +210,6 @@ public class batsPassMain extends Activity {
 		}
 	}
 
-	public void addButton(View view) {
-		return;
-	}
-	
 	private void clearSecrets() {
 		// clear all the fragments we might have shown
 		for (int i=0; i<fragTags.length; i++) {
@@ -211,6 +228,11 @@ public class batsPassMain extends Activity {
 		setContentView(R.layout.main);		
 	}
 
+	// once we've loaded the dictionary in the background, update the gen instance
+	private void populateGen() { gen = new BatsPassGen(BatsPassGenDict.getInstance(this)); }
+	public void fillPwDict(View v) { if (null != gen) { ((EditText) v.getRootView().findViewById(R.id.pwinput)).setText(CharBuffer.wrap(gen.genDictPass(4))); } }
+	public void fillPwRand(View v) { if (null != gen) { ((EditText) v.getRootView().findViewById(R.id.pwinput)).setText(CharBuffer.wrap(gen.genRandPass(16))); } }
+		
 	public void onPause() {
 		super.onPause();
 		sTimeout.signalQuit();
@@ -226,9 +248,10 @@ public class batsPassMain extends Activity {
 		public void run() {
 			while(true) {
 				try {
-					Thread.sleep(2*batsPassMain.dlgTimeout);
+					Thread.sleep(batsPassMain.dlgTimeout);
 				} catch (InterruptedException ex) {
 					if (quitTimer) {
+						quitTimer = false;
 						return;
 					} else {
 						continue;
@@ -247,8 +270,16 @@ public class batsPassMain extends Activity {
 		public QuitHandler (Looper l) { super(l); }
 		
 		public void handleMessage (Message m) {
-			clearSecrets();
-			finish();
+			switch (m.what){ 
+			case 0:
+				clearSecrets();
+				sTimeout = new SecretTimeout();
+				sTimeout.start();
+				break;
+			case 1:
+				populateGen();
+				break;
+			}
 		}
 	}
 }
