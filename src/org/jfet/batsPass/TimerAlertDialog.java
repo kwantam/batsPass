@@ -4,18 +4,20 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.view.MotionEvent;
 
-public abstract class TimerAlertDialog extends AlertDialog {
-	public TimerAlertDialog (Context c) {
+public class TimerAlertDialog extends AlertDialog {
+    final private Thread sTimeout;
+    
+	public TimerAlertDialog (Context c, Thread sTimeout) {
 		super(c, AlertDialog.THEME_HOLO_DARK);
-		
 		super.setCancelable(true);
 		super.setCanceledOnTouchOutside(true);
+		
+		this.sTimeout = sTimeout;
 	}
 	
-	public abstract void sendInterrupt();
-	
+	// intercept touch events and reset the watchdog timer
 	public boolean dispatchTouchEvent(MotionEvent ev) {
-		sendInterrupt();
+	    sTimeout.interrupt();
 		return super.dispatchTouchEvent(ev);
 	}
 }

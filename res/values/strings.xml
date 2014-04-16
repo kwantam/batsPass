@@ -13,4 +13,6 @@
     <string name="hint_pw">Password</string>
     <string name="fill_dict">Dict</string>
     <string name="fill_rand">Rand</string>
+    <string name="new_login">New Login</string>
+    <string name="edit_login">Edit Login</string>
 </resources>

@@ -3,33 +3,27 @@ package org.jfet.batsPass;
 import java.nio.CharBuffer;
 import java.util.Arrays;
 
+import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.content.DialogInterface;
 import android.os.Bundle;
 
-public abstract class BatsPassDialogFragment extends DialogFragment {
+@SuppressLint("ValidFragment")
+public class BatsPassDialogFragment extends DialogFragment {
 	final char[] msg;
 	final char[] title;
+	final Thread sTimeout;
 
-	public BatsPassDialogFragment (char[] msg, char[] title) {
+	public BatsPassDialogFragment (char[] msg, char[] title, Thread sTimeout) {
 		super();
 		this.msg = msg;
 		this.title = title;
+		this.sTimeout = sTimeout;
 	}
-
-	public BatsPassDialogFragment () {
-		super();
-		this.msg = "".toCharArray();
-		this.title = "".toCharArray();
-	}
-	
-	public abstract void sendInterrupt();
 
 	public Dialog onCreateDialog(Bundle savedInstanceState) {
-		final TimerAlertDialog alert = new TimerAlertDialog(getActivity()) {
-			public void sendInterrupt() { BatsPassDialogFragment.this.sendInterrupt(); }
-		};
+		final TimerAlertDialog alert = new TimerAlertDialog(getActivity(),sTimeout);
 		
 		alert.setButton(DialogInterface.BUTTON_NEGATIVE, getActivity().getString(R.string.done_string), new DialogInterface.OnClickListener() {
 			public void onClick(DialogInterface d, int i) { BatsPassDialogFragment.this.getDialog().cancel(); }
