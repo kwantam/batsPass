@@ -356,7 +356,7 @@ public class BatsPassMain extends Activity implements TextWatcher {
 		showDialog(dlg);
 	}
 
-	void dbDoRekey(String oS, String nS) {
+	void dbDoRekey(char[] oS, String nS) {
 		if ( (null != passDB) && passDB.isOpen() ) {
 			passDB.close();
 		}

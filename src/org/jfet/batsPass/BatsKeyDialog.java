@@ -68,10 +68,8 @@ public class BatsKeyDialog extends TimerAlertDialog implements TextWatcher {
 								BatsPassMain.bpMain.get().dbDoCreate(pass);
 								BatsKeyDialog.this.dismiss();
 							} else {
-								final String oS = getEditableValue(o.getText());
-								final String nS = getEditableValue(n.getText());
 								clearEditable(m.getText());
-								BatsPassMain.bpMain.get().dbDoRekey(oS,nS);
+								BatsPassMain.bpMain.get().dbDoRekey(getEditableCharValue(o.getText()),getEditableValue(n.getText()));
 								BatsKeyDialog.this.dismiss();
 							}
 						}
