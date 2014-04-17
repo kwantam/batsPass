@@ -9,7 +9,7 @@
         android:targetSdkVersion="19" />
 
     <application android:label="@string/app_name" android:icon="@drawable/ic_launcher" android:allowBackup="true">
-        <activity android:name="batsPassMain"
+        <activity android:name="BatsPassMain"
                   android:label="@string/app_name"
                   android:screenOrientation="portrait"
                   android:alwaysRetainTaskState="false"

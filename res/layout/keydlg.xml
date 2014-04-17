@@ -5,35 +5,25 @@
     android:orientation="vertical" >
     
     <EditText 
-        android:id="@+id/serviceinput"
-        android:inputType="text"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:layout_marginBottom="4dp"
-        android:hint="@string/hint_service"
-    />
-
-    <EditText 
-        android:id="@+id/uidinput"
-        android:inputType="text"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:layout_marginBottom="4dp"
-        android:hint="@string/hint_uid"
-    />
-
-    <EditText 
-        android:id="@+id/pwinput"
+        android:id="@+id/oldpass"
         android:inputType="textVisiblePassword"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
         android:layout_marginBottom="4dp"
-        android:hint="@string/hint_pw"
+        android:hint="@string/hint_oldpass"
     />
-    
+
+    <EditText 
+        android:id="@+id/newpass"
+        android:inputType="text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="4dp"
+        android:hint="@string/hint_newpass"
+    />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -45,7 +35,7 @@
             android:layout_weight="1"
             android:onClick="fillPwDict"
             android:text="@string/fill_dict"
-            android:id="@+id/pwinput_dict"
+            android:id="@+id/newpass_dict"
             style="?android:attr/buttonBarStyle"
             android:textSize="16sp" />
 
@@ -55,11 +45,9 @@
             android:layout_weight="1"
             android:onClick="fillPwRand"
             android:text="@string/fill_rand"
-            android:id="@+id/pwinput_rand"
+            android:id="@+id/newpass_rand"
             style="?android:attr/buttonBarStyle"
             android:textSize="16sp" />
         
     </LinearLayout>
-
-
 </LinearLayout>
