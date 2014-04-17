@@ -12,8 +12,8 @@
     <string name="hint_service">Service Name</string>
     <string name="hint_uid">User ID (optional)</string>
     <string name="hint_pw">Password</string>
-    <string name="fill_dict">Dict</string>
-    <string name="fill_rand">Rand</string>
+    <string name="fill_dict">Dictionary</string>
+    <string name="fill_rand">Random</string>
     <string name="new_login">New Login</string>
     <string name="edit_login">Edit Login</string>
     <string name="confirm_delete">Delete Login?</string>

@@ -47,7 +47,7 @@
             android:text="@string/fill_dict"
             android:id="@+id/pwinput_dict"
             style="?android:attr/buttonBarStyle"
-            android:textSize="16sp" />
+            android:textSize="14sp" />
         
         <View 
             android:layout_width="1dp"
@@ -65,7 +65,7 @@
             android:text="@string/fill_rand"
             android:id="@+id/pwinput_rand"
             style="?android:attr/buttonBarStyle"
-            android:textSize="16sp" />
+            android:textSize="14sp" />
         
     </LinearLayout>
 
