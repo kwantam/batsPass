@@ -217,12 +217,10 @@ public class BatsPassMain extends Activity implements TextWatcher {
 			passDB = SQLiteDatabase.openOrCreateDatabase(databaseFile.getPath(),thePass,null);
 		} catch (SQLiteException ex) {
 			passDB = null;
+			((EditText) findViewById(R.id.password)).setHint(R.string.wrong_password);
+			return;	// yes, finally block is still executed
 		} finally {
 			Arrays.fill(thePass, 'Z');
-			if (null == passDB) {
-				((EditText) findViewById(R.id.password)).setHint(R.string.wrong_password);
-				return;
-			}
 		}
 
 		showPassList();
@@ -365,13 +363,12 @@ public class BatsPassMain extends Activity implements TextWatcher {
 			passDB = SQLiteDatabase.openOrCreateDatabase(databaseFile.getPath(),oS,null);
 		} catch (SQLiteException ex) {
 			clearSecrets();
+			return;	// yes, finally block is still executed
 		} finally {
 			Arrays.fill(oS, 'Z');
 		}
 
-		if (null != passDB) {
-			passDB.rawExecSQL("PRAGMA rekey = '" + nS.replaceAll("'","''") + "';");
-		}
+		passDB.rawExecSQL("PRAGMA rekey = '" + nS.replaceAll("'","''") + "';");
 		clearSecrets();
 	}
 
