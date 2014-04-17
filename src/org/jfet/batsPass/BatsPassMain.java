@@ -16,6 +16,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -29,7 +30,7 @@ import net.sqlcipher.Cursor;
 import net.sqlcipher.database.SQLiteDatabase;
 import net.sqlcipher.database.SQLiteException;
 
-public class BatsPassMain extends Activity {
+public class BatsPassMain extends Activity implements TextWatcher {
 	final static String ID_KEY = "_id";
 	final static String SERVICE_KEY = "service";
 	final static String UID_KEY = "uid";
@@ -53,7 +54,7 @@ public class BatsPassMain extends Activity {
 
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE,WindowManager.LayoutParams.FLAG_SECURE);
 
-		setContentView(R.layout.main);
+		clearSecrets();
 
 		if (bpMain != null) {
 			finish(); // this should never happen! Maybe just RuntimeException instead...
@@ -148,6 +149,8 @@ public class BatsPassMain extends Activity {
 		passDB = null;
 
 		setContentView(R.layout.main);		
+
+		((EditText) findViewById(R.id.password)).addTextChangedListener(this);
 	}
 
 	private void showHelpDialog() {
@@ -292,17 +295,17 @@ public class BatsPassMain extends Activity {
 		cVals.clear();
 		showPassList();
 	}
-	
+
 	private void dbRekey() {
 		final Dialog dlg = new BatsKeyDialog(this);
 		showDialog(dlg);
 	}
-	
+
 	void dbDoRekey(String oS, String nS) {
 		if ( (null != passDB) && passDB.isOpen() ) {
 			passDB.close();
 		}
-		
+
 		final File databaseFile = getDatabasePath("password.db");
 
 		try {
@@ -311,7 +314,7 @@ public class BatsPassMain extends Activity {
 			clearSecrets();
 			return;
 		}
-		
+
 		passDB.rawExecSQL("PRAGMA rekey = '" + nS.replaceAll("'","''") + "';");
 		clearSecrets();
 	}
@@ -473,4 +476,9 @@ public class BatsPassMain extends Activity {
 			to[toOffset + i] = from[i];
 		}
 	}
+
+	// TEXTWATCHER METHODS
+	public void afterTextChanged(Editable arg0) { sTimeout.interrupt(); }
+	public void beforeTextChanged(CharSequence arg0, int arg1, int arg2, int arg3) { return; }
+	public void onTextChanged(CharSequence arg0, int arg1, int arg2, int arg3) { return; }	
 }
