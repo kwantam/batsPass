@@ -365,10 +365,13 @@ public class BatsPassMain extends Activity implements TextWatcher {
 			passDB = SQLiteDatabase.openOrCreateDatabase(databaseFile.getPath(),oS,null);
 		} catch (SQLiteException ex) {
 			clearSecrets();
-			return;
+		} finally {
+			Arrays.fill(oS, 'Z');
 		}
 
-		passDB.rawExecSQL("PRAGMA rekey = '" + nS.replaceAll("'","''") + "';");
+		if (null != passDB) {
+			passDB.rawExecSQL("PRAGMA rekey = '" + nS.replaceAll("'","''") + "';");
+		}
 		clearSecrets();
 	}
 
