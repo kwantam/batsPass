@@ -67,6 +67,9 @@ public class BatsPassMain extends Activity implements TextWatcher {
 			bpMain = new WeakReference<BatsPassMain>(this);
 		}
 
+		// load SQLCipher libraries
+		SQLiteDatabase.loadLibs(this);
+
 		// handler for messages from other threads
 		uiHandler = new QuitHandler(Looper.getMainLooper());
 		// preload the dictionary in another thread
@@ -214,8 +217,6 @@ public class BatsPassMain extends Activity implements TextWatcher {
 			((EditText) findViewById(R.id.password)).setHint(R.string.min_password);
 			return;
 		}
-
-		SQLiteDatabase.loadLibs(this);
 
 		final File databaseFile = getDatabasePath("password.db");
 		final boolean fExists = databaseFile.exists();

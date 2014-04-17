@@ -40,17 +40,19 @@ public class BatsKeyDialog extends TimerAlertDialog implements TextWatcher {
                 final Button b = BatsKeyDialog.this.getButton(DialogInterface.BUTTON_POSITIVE);
                 b.setOnClickListener(new View.OnClickListener() {
                     public void onClick(View v) {
-                        if (! m.getText().toString().equals(n.getText().toString())) {
-                            m.getText().clear();
+                        if (! passMatch()) {
+                        	clearEditable(m.getText());
+                            n.setHint(R.string.hint_newpass);
                             m.setHint(R.string.hint_confirm_match);
                         } else if (n.getText().length() < BatsPassMain.MIN_PASS_LENGTH) {
-                            n.getText().clear();
-                            m.getText().clear();
+                        	clearEditable(n.getText());
+                        	clearEditable(m.getText());
                             n.setHint(R.string.min_password);
+                            m.setHint(R.string.hint_confirm);
                         } else if ( (null != BatsPassMain.bpMain) && (null != BatsPassMain.bpMain.get()) ) {
                             final String oS = getEditableValue(o.getText());
                             final String nS = getEditableValue(n.getText());
-                            getEditableValue(m.getText());
+                            clearEditable(m.getText());
                             BatsPassMain.bpMain.get().dbDoRekey(oS,nS);
                             BatsKeyDialog.this.dismiss();
                         }
@@ -59,14 +61,34 @@ public class BatsKeyDialog extends TimerAlertDialog implements TextWatcher {
             }
         });
     }
+    
+    // check whether these passwords match without stringifying them
+    // fewer sensitive strings floating around in memory
+    private boolean passMatch() {
+    	final Editable nT = n.getText();
+    	final Editable mT = m.getText();
+    	if (nT.length() != mT.length()) {
+    		return false;
+    	}
+    	
+    	for (int i=0; i<nT.length(); i++) {
+    		if (nT.charAt(i) != mT.charAt(i)) {
+    			return false;
+    		}
+    	}
+    	
+    	return true;
+    }
 
     private String getEditableValue (Editable e) {
         final String retString = e.toString();
-
+        clearEditable(e);
+        return retString;
+    }
+    
+    private void clearEditable (Editable e) {
         for (int i=0; i<e.length(); i++) { e.replace(i, i+1, "Z"); }
         e.clear();
-
-        return retString;
     }
 
     // TEXTWATCHER METHODS
