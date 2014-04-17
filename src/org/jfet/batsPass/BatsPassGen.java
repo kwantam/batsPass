@@ -6,7 +6,7 @@ import java.security.SecureRandom;
 public class BatsPassGen {
     final private BatsPassGenDict dict;
     final private SecureRandom rand;
-    final static char[] symbols = new char[]{' ', '!', '"', '#', '$', '%', '&', '\'', '(', ')', '*', '+', ',', '-', '.', '/', ':', ';', '<', '=', '>', '?', '@', '[', '\\', ']', '^', '_', '`', '{', '|', '}', '~'};
+    final static char[] symbols = new char[]{'!', '"', '#', '$', '%', '&', '\'', '(', ')', '*', '+', ',', '-', '.', '/', ':', ';', '<', '=', '>', '?', '@', '[', '\\', ']', '^', '_', '`', '{', '|', '}', '~'};
 
     @SuppressLint("TrulyRandom")
     public BatsPassGen (BatsPassGenDict dict) {
@@ -27,9 +27,9 @@ public class BatsPassGen {
                 b.append(dict.get((int) (((double) dict.size()) * rand.nextDouble())));
             }
 
-            final int gpLen = b.length() + nWords;
+            final int gpLen = b.length() + nWords + 1;
             final char[] gPass = new char[gpLen];
-            for (int i=0; i<nWords; i++) {
+            for (int i=0; i<=nWords; i++) {
                 int rIdx;
                 do { 
                     rIdx = (int) (rand.nextDouble() * (double) gpLen);
@@ -60,7 +60,7 @@ public class BatsPassGen {
         final char[] gPass = new char[nChars];
 
         for (int i=0; i<nChars; i++) {
-            gPass[i] = Character.toChars(32 + (int) (rand.nextDouble() * 95.0))[0];
+            gPass[i] = Character.toChars(33 + (int) (rand.nextDouble() * 94.0))[0];
         }
 
         return gPass;

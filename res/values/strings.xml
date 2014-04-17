@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Bats! Password Manager</string>
+    <string name="app_name_prefs">Bats! Pass Preferences</string>
     <string name="btn_unlock">Unlock</string>
     <string name="hint_password">Master Password</string>
     <string name="wrong_password">Incorrect Password</string>
@@ -20,6 +21,7 @@
     <string name="no">No</string>
     <string name="min_password">"Password too short!"</string>
     <string name="action_rekey">Change Master Password</string>
+    <string name="action_settings">Preferences&#8230;</string>
     <string name="action_about">About&#8230;</string>
     <string name="error">Error!</string>
     <string name="db_closed">You must unlock the database before changing your password.</string>
@@ -27,6 +29,9 @@
     <string name="hint_newpass">New Master Password</string>
     <string name="hint_confirm">Confirm New Password</string>
     <string name="hint_confirm_match">Passwords Don\'t Match!</string>
+    <string name="pwlength_title">Password strength</string>
+    <string name="pwlength_summary">Length of generated passwords</string>
+    <string name="pwlength_default">3</string>
     <string name="action_about_message">
 Bats Password Manager uses SQLCipher Community Edition, which is made available by Zetectic LLC under the following license:
 \n

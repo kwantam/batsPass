@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+    
+    <ListPreference
+        android:key="pwlength"
+        android:entries="@array/pwlength"
+        android:entryValues="@array/pwlength_values"
+        android:summary="@string/pwlength_summary"
+        android:defaultValue="@string/pwlength_default"
+        android:title="@string/pwlength_title" />
+
+</PreferenceScreen>

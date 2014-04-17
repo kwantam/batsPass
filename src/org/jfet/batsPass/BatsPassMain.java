@@ -10,11 +10,13 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.ContentValues;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.database.CharArrayBuffer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.preference.PreferenceManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.Menu;
@@ -36,6 +38,7 @@ public class BatsPassMain extends Activity implements TextWatcher {
 	final static String UID_KEY = "uid";
 	final static String PASS_KEY = "pw";
 	final static String DB_NAME = "pass";
+	final static int RESULT_SETTINGS = 1337;
 	final static int MIN_PASS_LENGTH = 10;
 	final static long dlgTimeout = 40000;
 
@@ -53,11 +56,13 @@ public class BatsPassMain extends Activity implements TextWatcher {
 		super.onCreate(savedInstanceState);
 
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE,WindowManager.LayoutParams.FLAG_SECURE);
+		
+		PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
 
 		clearSecrets();
 
-		if (bpMain != null) {
-			finish(); // this should never happen! Maybe just RuntimeException instead...
+		if ( (null != bpMain) && (null != bpMain.get()) && (!this.equals(bpMain.get())) ) {
+			throw new RuntimeException("BatsPass already running!");
 		} else {
 			bpMain = new WeakReference<BatsPassMain>(this);
 		}
@@ -67,19 +72,26 @@ public class BatsPassMain extends Activity implements TextWatcher {
 		// preload the dictionary in another thread
 		new DictionaryLoader().start();
 		// timer thread
-		sTimeout = new SecretTimeout();
-		sTimeout.start();
+	}
+	
+	// start a timeout when we become visible
+	public void onResume() {
+		super.onResume();
+		startTimer();
 	}
 
-	// a rather harsh onPause() method - we never want this program resuming
+	// kill the timeout when we become invisible, and clearSecrets()
 	public void onPause() {
 		super.onPause();
-		((SecretTimeout) sTimeout).signalQuit();
-		sTimeout.interrupt();
+		stopTimer();
 		clearSecrets();
+	}
+	
+	// when we are going away, remove the static weakref
+	public void onDestroy() {
+		super.onDestroy();
 		bpMain.clear();
 		bpMain = null;
-		finish();
 	}
 
 	// intercept touch events and reset the watchdog timer
@@ -94,6 +106,7 @@ public class BatsPassMain extends Activity implements TextWatcher {
 		return true;
 	}
 
+	// launch the menu thing
 	public boolean onOptionsItemSelected(MenuItem mi) {
 		switch (mi.getItemId()) {
 		case R.id.action_about:
@@ -101,6 +114,9 @@ public class BatsPassMain extends Activity implements TextWatcher {
 			return true;
 		case R.id.action_rekey:
 			dbRekey();
+			return true;
+		case R.id.action_settings:
+			startActivityForResult(new Intent(this, BatsPassSettings.class), RESULT_SETTINGS);
 			return true;
 		default:
 			return super.onOptionsItemSelected(mi);
@@ -137,6 +153,24 @@ public class BatsPassMain extends Activity implements TextWatcher {
 			c.moveToNext();
 		} while (! c.isAfterLast());
 		c.close();    	
+	}
+	
+	// stop the timer
+	private void stopTimer() {
+		if (null != sTimeout) {
+			((SecretTimeout) sTimeout).signalQuit();
+			sTimeout.interrupt();
+			sTimeout = null;	
+		}
+	}
+	
+	// start the timer
+	private void startTimer() {
+		if ( (null != sTimeout) && (sTimeout.isAlive()) ) {
+			stopTimer();
+		}
+		sTimeout = new SecretTimeout();
+		sTimeout.start();		
 	}
 
 	// clear fragments, return to "login" screen
@@ -355,7 +389,7 @@ public class BatsPassMain extends Activity implements TextWatcher {
 	// once we've loaded the dictionary in the background, update the gen instance
 	private void populateGen() { gen = new BatsPassGen(BatsPassGenDict.getInstance(this)); }
 
-	// callbacks from BatsItemDialog that use the generator
+	// generate a dict-based password
 	public void fillPwDict(View v) {
 		if (null != gen) {
 			final int targetId;
@@ -369,10 +403,11 @@ public class BatsPassMain extends Activity implements TextWatcher {
 			default:
 				return;
 			}
-			((EditText) v.getRootView().findViewById(targetId)).setText(CharBuffer.wrap(gen.genDictPass(4)));
+			((EditText) v.getRootView().findViewById(targetId)).setText(CharBuffer.wrap(gen.genDictPass(getPwLengthPref())));
 		}
 	}
 
+	// generate a truly random password
 	public void fillPwRand(View v) {
 		if (null != gen) {
 			final int targetId;
@@ -386,8 +421,13 @@ public class BatsPassMain extends Activity implements TextWatcher {
 			default:
 				return;
 			}
-			((EditText) v.getRootView().findViewById(targetId)).setText(CharBuffer.wrap(gen.genRandPass(16)));
+			((EditText) v.getRootView().findViewById(targetId)).setText(CharBuffer.wrap(gen.genRandPass(4*getPwLengthPref())));
 		}
+	}
+	
+	// get the user's preferred password length
+	private int getPwLengthPref() {
+		return Integer.parseInt(PreferenceManager.getDefaultSharedPreferences(this).getString("pwlength","3"));
 	}
 
 	// THREADING STUFF

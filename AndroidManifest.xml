@@ -9,18 +9,31 @@
         android:minSdkVersion="11"
         android:targetSdkVersion="19" />
 
-    <application android:label="@string/app_name" android:icon="@drawable/ic_launcher" android:allowBackup="true">
-        <activity android:name="BatsPassMain"
+    <application android:label="@string/app_name"
+        		 android:icon="@drawable/ic_launcher"
+        		 android:allowBackup="true" 
+        		 android:theme="@android:style/Theme.Holo" >
+        <activity android:name="org.jfet.batsPass.BatsPassMain"
                   android:label="@string/app_name"
                   android:screenOrientation="portrait"
                   android:alwaysRetainTaskState="false"
                   android:clearTaskOnLaunch="true"
-                  android:stateNotNeeded="true"
-                  android:noHistory="true">
+                  android:stateNotNeeded="true" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+        <activity android:name="org.jfet.batsPass.BatsPassSettings"
+                  android:label="@string/app_name_prefs"
+                  android:screenOrientation="portrait"
+                  android:alwaysRetainTaskState="false"
+                  android:clearTaskOnLaunch="true"
+                  android:stateNotNeeded="true"
+                  android:parentActivityName="org.jfet.batsPass.BatsPassMain" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="org.jfet.batsPass.BatsPassMain" />
         </activity>
     </application>
 
