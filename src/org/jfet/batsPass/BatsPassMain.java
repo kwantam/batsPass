@@ -36,7 +36,8 @@ public class BatsPassMain extends Activity implements TextWatcher {
 	final static String UID_KEY = "uid";
 	final static String PASS_KEY = "pw";
 	final static String DB_NAME = "pass";
-	final static long dlgTimeout = 30000;
+	final static int MIN_PASS_LENGTH = 10;
+	final static long dlgTimeout = 40000;
 
 	static WeakReference<BatsPassMain> bpMain;
 
@@ -45,7 +46,6 @@ public class BatsPassMain extends Activity implements TextWatcher {
 	Thread sTimeout = null;
 	private Handler uiHandler = null;
 	private BatsPassGen gen = null;
-
 
 	// OVERRIDDEN ACTIVITY METHODS
 	// start us off, Jerry
@@ -176,7 +176,7 @@ public class BatsPassMain extends Activity implements TextWatcher {
 		}
 		passEdit.clear();
 
-		if (thePass.length < 8) {
+		if (thePass.length < BatsPassMain.MIN_PASS_LENGTH) {
 			((EditText) findViewById(R.id.password)).setHint(R.string.min_password);
 			return;
 		}
@@ -296,7 +296,7 @@ public class BatsPassMain extends Activity implements TextWatcher {
 		showPassList();
 	}
 
-	private void dbRekey() {
+	void dbRekey() {
 		final Dialog dlg = new BatsKeyDialog(this);
 		showDialog(dlg);
 	}

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="org.jfet.batsPass"
-      android:versionCode="2"
-      android:versionName="1.04">
+      android:versionCode="3"
+      android:versionName="1.047">
       <!--  versionName is an increasing substring of -3/pi/cos(e) -->
 
     <uses-sdk

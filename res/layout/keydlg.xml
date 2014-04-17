@@ -6,7 +6,7 @@
     
     <EditText 
         android:id="@+id/oldpass"
-        android:inputType="textVisiblePassword"
+        android:inputType="textPassword"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
@@ -16,12 +16,22 @@
 
     <EditText 
         android:id="@+id/newpass"
-        android:inputType="text"
+        android:inputType="textVisiblePassword"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
         android:layout_marginBottom="4dp"
         android:hint="@string/hint_newpass"
+    />
+
+    <EditText 
+        android:id="@+id/confirm"
+        android:inputType="textVisiblePassword"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="4dp"
+        android:hint="@string/hint_confirm"
     />
 
     <LinearLayout
