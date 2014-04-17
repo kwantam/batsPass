@@ -21,6 +21,7 @@
     <string name="no">No</string>
     <string name="min_password">"Password too short!"</string>
     <string name="action_rekey">Change Master Password</string>
+    <string name="action_newkey">Set Master Password</string>
     <string name="action_settings">Preferences&#8230;</string>
     <string name="action_about">About&#8230;</string>
     <string name="error">Error!</string>

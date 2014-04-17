@@ -52,7 +52,6 @@
         <View 
             android:layout_width="1dp"
             android:layout_height="fill_parent"
-            android:layout_marginBottom="4dp"
             android:layout_marginTop="4dp"
             android:background="?android:attr/dividerVertical"
         />

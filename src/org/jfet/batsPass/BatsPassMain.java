@@ -44,6 +44,7 @@ public class BatsPassMain extends Activity implements TextWatcher {
 
 	static WeakReference<BatsPassMain> bpMain;
 
+	private File databaseFile;
 	private WeakReference<Dialog> activeDialog = null;
 	private SQLiteDatabase passDB = null;
 	Thread sTimeout = null;
@@ -57,30 +58,31 @@ public class BatsPassMain extends Activity implements TextWatcher {
 
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE,WindowManager.LayoutParams.FLAG_SECURE);
 		
-		PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
-
-		clearSecrets();
-
 		if ( (null != bpMain) && (null != bpMain.get()) && (!this.equals(bpMain.get())) ) {
 			throw new RuntimeException("BatsPass already running!");
 		} else {
 			bpMain = new WeakReference<BatsPassMain>(this);
-		}
-
-		// load SQLCipher libraries
-		SQLiteDatabase.loadLibs(this);
+		}	
+		
+		PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
 
 		// handler for messages from other threads
 		uiHandler = new QuitHandler(Looper.getMainLooper());
 		// preload the dictionary in another thread
 		new DictionaryLoader().start();
-		// timer thread
+
+		// load SQLCipher libraries
+		SQLiteDatabase.loadLibs(this);
+		databaseFile = getDatabasePath("password.db");;
+		clearSecrets(); // shows the main window, too
+		dbCreate();
 	}
 	
 	// start a timeout when we become visible
 	public void onResume() {
 		super.onResume();
 		startTimer();
+		dbCreate();	// just in case we got paused in the middle of creating the database the first time...
 	}
 
 	// kill the timeout when we become invisible, and clearSecrets()
@@ -204,26 +206,10 @@ public class BatsPassMain extends Activity implements TextWatcher {
 	// DATABASE METHODS
 	// open the database
 	public void openDatabase (View v) {
-		final Editable passEdit = ((EditText) findViewById(R.id.password)).getText();
-		final char[] thePass = new char[passEdit.length()];	
-		// grab password, and zero it out from the Editable where it previously existed
-		for (int i = 0; i<passEdit.length(); i++) {
-			thePass[i] = passEdit.charAt(i);
-			passEdit.replace(i,i+1,"Z");
-		}
-		passEdit.clear();
+		final char[] thePass = BatsKeyDialog.getEditableCharValue(((EditText) findViewById(R.id.password)).getText());
 
-		if (thePass.length < BatsPassMain.MIN_PASS_LENGTH) {
-			((EditText) findViewById(R.id.password)).setHint(R.string.min_password);
+		if (thePass.length < 1) {
 			return;
-		}
-
-		final File databaseFile = getDatabasePath("password.db");
-		final boolean fExists = databaseFile.exists();
-
-		// make sure the parent directories exist
-		if (! fExists) {
-			databaseFile.getParentFile().mkdirs();
 		}
 
 		// try to open the database; figure out if the password is correct
@@ -239,21 +225,56 @@ public class BatsPassMain extends Activity implements TextWatcher {
 			}
 		}
 
-		// create password table if it doesn't yet exist
-		if (! fExists) {
-			passDB.execSQL("CREATE TABLE "+ DB_NAME + 
-					" ( " + ID_KEY + " integer primary key autoincrement not null, " +
-					SERVICE_KEY + " string not null, " +
-					UID_KEY + " string, " +
-					PASS_KEY + " string not null ); ");
-			final ContentValues initContent = new ContentValues();
-			initContent.put(SERVICE_KEY,"test");
-			initContent.put(UID_KEY,"quux");
-			initContent.put(PASS_KEY,"foobar");
-			passDB.insert(DB_NAME, null, initContent);
+		showPassList();
+	}
+	
+	private void dbCreate() {
+		if (databaseFile.exists()) {
+			return;
+		}
+		
+		final Dialog dlg = new BatsKeyDialog(this,true);
+		dlg.setCancelable(false);
+		dlg.setCanceledOnTouchOutside(false);
+		showDialog(dlg);
+	}
+	
+	void dbDoCreate(char[] pass) {
+		boolean tryAgain = false;
+		if (! databaseFile.exists()) {
+			databaseFile.getParentFile().mkdirs();
+			try {
+				// create db
+				passDB = SQLiteDatabase.openOrCreateDatabase(databaseFile.getPath(),pass,null);
+			} catch (SQLiteException ex) {
+				tryAgain = true;
+			}
+			
+			if (! tryAgain) {
+				try {
+					// create initial table
+					passDB.execSQL("CREATE TABLE "+ DB_NAME + 
+							" ( " + ID_KEY + " integer primary key autoincrement not null, " +
+							SERVICE_KEY + " string not null, " +
+							UID_KEY + " string, " +
+							PASS_KEY + " string not null ); ");
+					
+					// insert one test entry
+					final ContentValues initContent = new ContentValues();
+					initContent.put(SERVICE_KEY,"test");
+					initContent.put(UID_KEY,"quux");
+					initContent.put(PASS_KEY,"bazbar");
+					passDB.insert(DB_NAME, null, initContent);
+				} catch (SQLiteException ex) { }
+			}
 		}
 
-		showPassList();
+		Arrays.fill(pass, 'Z');
+		clearSecrets();
+		if (tryAgain) {
+			dbCreate();
+		}
+		return;
 	}
 
 	private Cursor getByID(String id) {
@@ -288,7 +309,6 @@ public class BatsPassMain extends Activity implements TextWatcher {
 		}
 		return;
 	}
-
 
 	// called from BatsItemMenu
 	void confirmDeletePass(final String id) {
@@ -332,7 +352,7 @@ public class BatsPassMain extends Activity implements TextWatcher {
 	}
 
 	void dbRekey() {
-		final Dialog dlg = new BatsKeyDialog(this);
+		final Dialog dlg = new BatsKeyDialog(this,false);
 		showDialog(dlg);
 	}
 
@@ -340,8 +360,6 @@ public class BatsPassMain extends Activity implements TextWatcher {
 		if ( (null != passDB) && passDB.isOpen() ) {
 			passDB.close();
 		}
-
-		final File databaseFile = getDatabasePath("password.db");
 
 		try {
 			passDB = SQLiteDatabase.openOrCreateDatabase(databaseFile.getPath(),oS,null);
