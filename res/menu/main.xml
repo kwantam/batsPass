@@ -9,6 +9,13 @@
     />
     
     <item
+        android:id="@+id/action_delete"
+        android:orderInCategory="150"
+        android:showAsAction="never"
+        android:title="@string/action_delete"
+    />
+    
+    <item
         android:id="@+id/action_settings"
         android:orderInCategory="200"
         android:showAsAction="never"
@@ -17,7 +24,7 @@
     
     <item
         android:id="@+id/action_about"
-        android:orderInCategory="200"
+        android:orderInCategory="300"
         android:showAsAction="never"
         android:title="@string/action_about"
     />

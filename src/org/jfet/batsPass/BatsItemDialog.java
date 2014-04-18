@@ -99,11 +99,7 @@ public class BatsItemDialog extends TimerAlertDialog implements TextWatcher {
 	}
 
 // TEXTWATCHER METHODS
-	public void afterTextChanged(Editable arg0) {
-		if ( (null != BatsPassMain.bpMain) && (null != BatsPassMain.bpMain.get()) && (null != BatsPassMain.bpMain.get().sTimeout) ) {
-			BatsPassMain.bpMain.get().sTimeout.interrupt();
-		}
-	}
+	public void afterTextChanged(Editable arg0) { BatsPassMain.resetTimer(); }
 	public void beforeTextChanged(CharSequence arg0, int arg1, int arg2, int arg3) { return; }
 	public void onTextChanged(CharSequence arg0, int arg1, int arg2, int arg3) { return; }	
 }

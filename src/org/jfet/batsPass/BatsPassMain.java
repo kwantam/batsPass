@@ -1,6 +1,9 @@
 package org.jfet.batsPass;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.nio.CharBuffer;
 import java.util.Arrays;
@@ -11,6 +14,7 @@ import android.app.Dialog;
 import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.AssetFileDescriptor;
 import android.database.CharArrayBuffer;
 import android.os.Bundle;
 import android.os.Handler;
@@ -58,11 +62,12 @@ public class BatsPassMain extends Activity implements TextWatcher {
 
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE,WindowManager.LayoutParams.FLAG_SECURE);
 		
+		// if we are being started but somehow another instance is running, kill that instance
 		if ( (null != bpMain) && (null != bpMain.get()) && (!this.equals(bpMain.get())) ) {
-			throw new RuntimeException("BatsPass already running!");
-		} else {
-			bpMain = new WeakReference<BatsPassMain>(this);
-		}	
+			bpMain.get().finish();
+		}
+
+		bpMain = new WeakReference<BatsPassMain>(this);
 		
 		PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
 
@@ -73,9 +78,8 @@ public class BatsPassMain extends Activity implements TextWatcher {
 
 		// load SQLCipher libraries
 		SQLiteDatabase.loadLibs(this);
-		databaseFile = getDatabasePath("password.db");;
+		databaseFile = getDatabasePath("password.db");
 		clearSecrets(); // shows the main window, too
-		dbCreate();
 	}
 	
 	// start a timeout when we become visible
@@ -95,13 +99,17 @@ public class BatsPassMain extends Activity implements TextWatcher {
 	// when we are going away, remove the static weakref
 	public void onDestroy() {
 		super.onDestroy();
-		bpMain.clear();
-		bpMain = null;
+		if (bpMain != null) {
+			bpMain.clear();
+			bpMain = null;
+		}
 	}
 
 	// intercept touch events and reset the watchdog timer
 	public boolean dispatchTouchEvent(MotionEvent ev) {
-		sTimeout.interrupt();
+		if (null != sTimeout) {
+			sTimeout.interrupt();
+		}
 		return super.dispatchTouchEvent(ev);
 	}
 
@@ -123,6 +131,9 @@ public class BatsPassMain extends Activity implements TextWatcher {
 		case R.id.action_settings:
 			startActivityForResult(new Intent(this, BatsPassSettings.class), RESULT_SETTINGS);
 			return true;
+		case R.id.action_delete:
+			dbDelete();
+			return true;
 		default:
 			return super.onOptionsItemSelected(mi);
 		}
@@ -134,7 +145,13 @@ public class BatsPassMain extends Activity implements TextWatcher {
 		// go to the password list view
 		setContentView(R.layout.passlist);
 
-		final Cursor c = passDB.query(DB_NAME,new String[]{ID_KEY,SERVICE_KEY},null,null,null,null,null,null);
+		Cursor c = null;
+		try {
+			c = passDB.query(DB_NAME,new String[]{ID_KEY,SERVICE_KEY},null,null,null,null,null,null);
+		} catch (SQLiteException ex) {
+			c = null;
+		}
+
 		if ( (null == c) || (0 == c.getCount()) ) {
 			if (null != c) {
 				c.close();
@@ -228,13 +245,16 @@ public class BatsPassMain extends Activity implements TextWatcher {
 	
 	private void dbCreate() {
 		if (databaseFile.exists()) {
+			dbImport();
 			return;
 		}
-		
-		final Dialog dlg = new BatsKeyDialog(this,true);
-		dlg.setCancelable(false);
-		dlg.setCanceledOnTouchOutside(false);
-		showDialog(dlg);
+
+		// if we were called with a file intent, try to copy that database, else make a new one
+		if (! dbCopy(databaseFile)) {
+			showDialog(new BatsKeyDialog(this,true));
+		} else {
+			getIntent().setData(null);
+		}
 	}
 	
 	void dbDoCreate(char[] pass) {
@@ -273,6 +293,142 @@ public class BatsPassMain extends Activity implements TextWatcher {
 			dbCreate();
 		}
 		return;
+	}
+	
+	private void dbImport() {
+		// if we already imported this db, don't do it again
+		if (null == getIntent().getData()) {
+			return;
+		}
+		
+		// create temporary database file
+		final File tmpFile = getDatabasePath("temp.db");
+		if (tmpFile.exists()) { tmpFile.delete(); }
+		if (! dbCopy(tmpFile)) {
+			tmpFile.delete();
+			return;
+		}
+		
+		// OK, so there was an intent, *and* it was successfully copied into temp.db
+		// get the passwords and then we'll do the import
+		showDialog(new BatsImportDialog(this));
+	}
+	
+	void dbDoImport(char[] srcPass, char[] dstPass) {
+		// we have temp.db; open both databases and off we go
+		SQLiteDatabase tmpDB = null;
+		Cursor c = null;
+		boolean retry = false;
+		try {
+			tmpDB = SQLiteDatabase.openOrCreateDatabase(getDatabasePath("temp.db").getPath(), srcPass, null);
+			passDB = SQLiteDatabase.openOrCreateDatabase(databaseFile.getPath(), dstPass, null);
+			
+			c = tmpDB.query(DB_NAME,new String[]{SERVICE_KEY,UID_KEY,PASS_KEY},null,null,null,null,null,null);	
+			if ( (null != c)  && (0 != c.getCount()) ) {
+				c.moveToFirst();
+				do {
+					final String srv = c.getString(0);
+					final String uid = c.getString(1);
+					final String pw = c.getString(2);
+					final Cursor c2 = passDB.query(DB_NAME, new String[]{ID_KEY}, 
+							String.format("%s='%s' AND %s='%s' AND %s='%s'",
+									      SERVICE_KEY,srv.replaceAll("'", "''"),
+									      UID_KEY,uid.replaceAll("'", "''"),
+									      PASS_KEY,pw.replaceAll("'", "''")),
+						    null, null, null, null, null);
+
+					if ( (null == c2) || (0 == c2.getCount()) ) {
+						final ContentValues cVals = new ContentValues();
+						cVals.put(SERVICE_KEY,srv);
+						cVals.put(UID_KEY, uid);
+						cVals.put(PASS_KEY, pw);
+						passDB.insert(DB_NAME, null, cVals);
+					}
+					
+					if (null != c2) {
+						c2.close();
+					}
+					c.moveToNext();
+				} while (! c.isAfterLast());
+			}
+		} catch (SQLiteException ex) {
+			retry = true;
+		} finally {
+			if ( (null != tmpDB) && (tmpDB.isOpen()) ) {
+				tmpDB.close();
+			}
+			if (null != c) {
+				c.close();
+			}
+			Arrays.fill(srcPass, 'Z');
+			Arrays.fill(dstPass, 'Z');
+			getDatabasePath("temp.db").delete();
+			clearSecrets();
+			if (retry) {
+				dbImport();
+				return;
+			}
+		}
+
+		// if we got here, we were successful
+		getIntent().setData(null);
+		return;
+	}
+	
+	private boolean dbCopy(File dstFile) {
+		final Intent i = getIntent();
+		if ( (null == i) || (null == i.getData()) ) {
+			return false;
+		}
+		
+		// OK, so we 
+		AssetFileDescriptor inAfd = null;
+		FileInputStream inS = null;
+		FileOutputStream outS = null;
+		try {
+			inAfd = getContentResolver().openAssetFileDescriptor(i.getData(), "r");
+			inS = inAfd.createInputStream();
+			outS = new FileOutputStream(dstFile);
+			inS.getChannel().transferTo(0, inS.getChannel().size(), outS.getChannel());
+		} catch (IOException ex) {
+			return false;
+		} finally {
+			try { inAfd.close(); }
+			catch (Exception ex) {}
+
+			try { inS.close(); }
+			catch (Exception ex) {}
+
+			try { outS.close(); }
+			catch (Exception ex) {}
+		}
+
+		return true;
+	}
+
+	private void dbDelete() {
+		final AlertDialog.Builder ab = new AlertDialog.Builder(this);
+		ab.setTitle(R.string.action_delete);
+		ab.setMessage(R.string.action_delete_confirm);
+		ab.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int which) {
+				BatsPassMain.this.dbDoDelete();
+			}
+		});
+		ab.setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int which) {
+				dialog.cancel();
+			}
+		});
+
+		showDialog(ab.create());
+		return;
+	}
+	
+	private void dbDoDelete() {
+		clearSecrets();
+		databaseFile.delete();
+		dbCreate();
 	}
 
 	private Cursor getByID(String id) {
@@ -330,7 +486,7 @@ public class BatsPassMain extends Activity implements TextWatcher {
 		passDB.delete(DB_NAME, ID_KEY+"="+id, null);
 		showPassList();
 	}
-
+	
 	// takes View because it's a button callback
 	// but we don't actually use it!
 	public void newPass(View v) {
@@ -350,8 +506,7 @@ public class BatsPassMain extends Activity implements TextWatcher {
 	}
 
 	void dbRekey() {
-		final Dialog dlg = new BatsKeyDialog(this,false);
-		showDialog(dlg);
+		showDialog(new BatsKeyDialog(this,false));
 	}
 
 	void dbDoRekey(char[] oS, String nS) {
@@ -537,7 +692,13 @@ public class BatsPassMain extends Activity implements TextWatcher {
 	}
 
 	// TEXTWATCHER METHODS
-	public void afterTextChanged(Editable arg0) { sTimeout.interrupt(); }
+	public void afterTextChanged(Editable arg0) { resetTimer(); }
 	public void beforeTextChanged(CharSequence arg0, int arg1, int arg2, int arg3) { return; }
 	public void onTextChanged(CharSequence arg0, int arg1, int arg2, int arg3) { return; }	
+	
+	static void resetTimer() {
+		if ( (null != bpMain) && (null != bpMain.get()) && (null != bpMain.get().sTimeout) ) {
+			bpMain.get().sTimeout.interrupt();
+		}
+	}
 }

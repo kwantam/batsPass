@@ -4,6 +4,7 @@
     <string name="app_name_prefs">Bats! Pass Preferences</string>
     <string name="btn_unlock">Unlock</string>
     <string name="hint_password">Master Password</string>
+    <string name="hint_importpass">Import DB Password</string>
     <string name="wrong_password">Incorrect Password</string>
     <string name="new_button">New</string>
     <string name="done_string">Done</string>
@@ -22,6 +23,10 @@
     <string name="min_password">"Password too short!"</string>
     <string name="action_rekey">Change Master Password</string>
     <string name="action_newkey">Set Master Password</string>
+    <string name="action_delete">Delete Master Database</string>
+    <string name="action_delete_confirm">Warning: you are about to delete your master password database! Are you sure you want to do this?</string>
+    <string name="action_import">Import Password Database</string>
+    <string name="action_importing">Please wait while the database is imported.</string>
     <string name="action_settings">Preferences&#8230;</string>
     <string name="action_about">About&#8230;</string>
     <string name="error">Error!</string>
