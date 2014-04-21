@@ -9,10 +9,17 @@
         android:minSdkVersion="11"
         android:targetSdkVersion="19" />
 
+    <permission android:label="@string/permission_pwcontent"
+                android:description="@string/permission_pwcontent_desc"
+                android:name="org.jfet.batsPass.BatsPassProvider.PERMISSION"
+                android:protectionLevel="signature"
+    />
+
     <!-- external and internal storage for actually reading the M3u files -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_INTERNAL_STORAGE" />
- 
+    <uses-permission android:name="org.jfet.batsPass.BatsPassProvider.PERMISSION" />
+     
     <application android:label="@string/app_name"
         		 android:icon="@drawable/ic_launcher"
         		 android:allowBackup="true" 
@@ -51,6 +58,16 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="org.jfet.batsPass.BatsPassMain" />
         </activity>
+        <provider android:name="org.jfet.batsPass.BatsPassProvider"
+            	  android:authorities="org.jfet.batsPass.BatsPassProvider"
+            	  android:permission="org.jfet.batsPass.BatsPassProvider.PERMISSION"
+            	  android:grantUriPermissions="true"
+				  android:exported="true"
+				  android:enabled="true"
+				  android:initOrder="999"
+				  android:label="@string/app_content"
+				  android:multiprocess="false"
+		/>
     </application>
 
 </manifest>

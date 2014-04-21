@@ -2,6 +2,7 @@
 <resources>
     <string name="app_name">Bats! Password Manager</string>
     <string name="app_name_prefs">Bats! Pass Preferences</string>
+    <string name="app_content">Bats! Password Data</string>
     <string name="btn_unlock">Unlock</string>
     <string name="hint_password">Master Password</string>
     <string name="hint_importpass">Import DB Password</string>
@@ -29,6 +30,8 @@
     <string name="action_importing">Please wait while the database is imported.</string>
     <string name="action_settings">Preferences&#8230;</string>
     <string name="action_about">About&#8230;</string>
+    <string name="action_export">Export Password Database</string>
+    <string name="export_chooser">Export Password Database Via&#8230;</string>
     <string name="error">Error!</string>
     <string name="db_closed">You must unlock the database before changing your password.</string>
     <string name="hint_oldpass">Current Master Password</string>
@@ -38,6 +41,8 @@
     <string name="pwlength_title">Password strength</string>
     <string name="pwlength_summary">Length of generated passwords</string>
     <string name="pwlength_default">3</string>
+    <string name="permission_pwcontent">Read Password Database</string>
+    <string name="permission_pwcontent_desc">Read the password database in encrypted form, e.g., for backup purposes.</string>
     <string name="action_about_message">
 Bats Password Manager uses SQLCipher Community Edition, which is made available by Zetectic LLC under the following license:
 \n

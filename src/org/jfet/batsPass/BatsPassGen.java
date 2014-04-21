@@ -1,9 +1,11 @@
 package org.jfet.batsPass;
 
 import android.annotation.SuppressLint;
+
 import java.security.SecureRandom;
 
 public class BatsPassGen {
+	
     final private BatsPassGenDict dict;
     final private SecureRandom rand;
     final static char[] symbols = new char[]{'!', '"', '#', '$', '%', '&', '\'', '(', ')', '*', '+', ',', '-', '.', '/', ':', ';', '<', '=', '>', '?', '@', '[', '\\', ']', '^', '_', '`', '{', '|', '}', '~'};

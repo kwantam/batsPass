@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.nio.CharBuffer;
 import java.util.Arrays;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -16,6 +15,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
 import android.database.CharArrayBuffer;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -133,6 +133,9 @@ public class BatsPassMain extends Activity implements TextWatcher {
 			return true;
 		case R.id.action_delete:
 			dbDelete();
+			return true;
+		case R.id.action_export:
+			dbExport();
 			return true;
 		default:
 			return super.onOptionsItemSelected(mi);
@@ -525,6 +528,23 @@ public class BatsPassMain extends Activity implements TextWatcher {
 
 		passDB.rawExecSQL("PRAGMA rekey = '" + nS.replaceAll("'","''") + "';");
 		clearSecrets();
+	}
+	
+	private void dbExport() {
+		final Intent i = new Intent(Intent.ACTION_SEND);
+		i.setType("text/plain");
+		i.putExtra(Intent.EXTRA_SUBJECT, "Bats! Password Database Export");
+		i.putExtra(Intent.EXTRA_TEXT, "Your Bats! Password database is attached.");
+		i.putExtra(Intent.EXTRA_STREAM, Uri.parse("content://" + BatsPassProvider.authName + BatsPassProvider.fileName));
+
+		// add permission to this intent so that the receiving program can access our content provider
+		i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+		
+		final Intent c = Intent.createChooser(i, getString(R.string.export_chooser));
+		
+		if (null != i.resolveActivity(getPackageManager())) {
+			startActivity(c);
+		}
 	}
 
 	// callback from the service list when we're asked to display
