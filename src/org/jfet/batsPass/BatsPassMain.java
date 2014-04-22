@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.nio.CharBuffer;
 import java.util.Arrays;
+import java.util.Random;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -82,11 +84,17 @@ public class BatsPassMain extends Activity implements TextWatcher {
 		clearSecrets(); // shows the main window, too
 	}
 	
+	// new intent - since we're running in singleTask mode
+	public void onNewIntent(Intent i) {
+		super.onNewIntent(i);
+		setIntent(i);
+	}
+	
 	// start a timeout when we become visible
 	public void onResume() {
 		super.onResume();
 		startTimer();
-		dbCreate();	// just in case we got paused in the middle of creating the database the first time...
+		clearSecrets();
 	}
 
 	// kill the timeout when we become invisible, and clearSecrets()
@@ -208,8 +216,11 @@ public class BatsPassMain extends Activity implements TextWatcher {
 		passDB = null;
 
 		setContentView(R.layout.main);		
-
 		((EditText) findViewById(R.id.password)).addTextChangedListener(this);
+		
+		if ( (! databaseFile.exists()) || ((null != getIntent()) && (null != getIntent().getData())) ) {
+			dbCreate();
+		}
 	}
 
 	private void showHelpDialog() {
@@ -383,7 +394,7 @@ public class BatsPassMain extends Activity implements TextWatcher {
 		if ( (null == i) || (null == i.getData()) ) {
 			return false;
 		}
-		
+
 		// OK, so we 
 		AssetFileDescriptor inAfd = null;
 		FileInputStream inS = null;
@@ -391,6 +402,7 @@ public class BatsPassMain extends Activity implements TextWatcher {
 		try {
 			inAfd = getContentResolver().openAssetFileDescriptor(i.getData(), "r");
 			inS = inAfd.createInputStream();
+			dstFile.getParentFile().mkdirs();
 			outS = new FileOutputStream(dstFile);
 			inS.getChannel().transferTo(0, inS.getChannel().size(), outS.getChannel());
 		} catch (IOException ex) {
@@ -531,18 +543,20 @@ public class BatsPassMain extends Activity implements TextWatcher {
 	}
 	
 	private void dbExport() {
-		final Intent i = new Intent(Intent.ACTION_SEND);
-		i.setType("text/plain");
-		i.putExtra(Intent.EXTRA_SUBJECT, "Bats! Password Database Export");
-		i.putExtra(Intent.EXTRA_TEXT, "Your Bats! Password database is attached.");
-		i.putExtra(Intent.EXTRA_STREAM, Uri.parse("content://" + BatsPassProvider.authName + BatsPassProvider.fileName));
+		final String fileName = BatsPassGen.genRandPath(new Random());
+		final Uri u = Uri.parse("content://" + BatsPassProvider.authName + "/" + fileName + "/" + BatsPassProvider.fileName);
 
-		// add permission to this intent so that the receiving program can access our content provider
+		final Intent i = new Intent(Intent.ACTION_SEND);
+		i.setType("application/octet-stream");
+		i.putExtra(Intent.EXTRA_SUBJECT, BatsPassProvider.fileName);
+		i.putExtra(Intent.EXTRA_TEXT, "Your Bats! Password database is attached.");
+		i.putExtra(Intent.EXTRA_STREAM, u);
 		i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-		
+
 		final Intent c = Intent.createChooser(i, getString(R.string.export_chooser));
 		
 		if (null != i.resolveActivity(getPackageManager())) {
+			PreferenceManager.getDefaultSharedPreferences(this).edit().putString("EXPORT", fileName).apply();
 			startActivity(c);
 		}
 	}
@@ -701,7 +715,7 @@ public class BatsPassMain extends Activity implements TextWatcher {
 			activeDialog.clear();		
 		}
 	}
-
+	
 	// MISCELLANEOUS FUNCTIONS	
 	// yes, strcopy. We are using char[] here to
 	// try to control propagation of pw data in memory

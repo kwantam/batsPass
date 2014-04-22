@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="org.jfet.batsPass"
-      android:versionCode="5"
-      android:versionName="1.04737">
+      android:versionCode="6"
+      android:versionName="1.047377">
       <!--  versionName is an increasing substring of -3/pi/cos(e) -->
 
     <uses-sdk
         android:minSdkVersion="11"
         android:targetSdkVersion="19" />
 
-    <permission android:label="@string/permission_pwcontent"
-                android:description="@string/permission_pwcontent_desc"
-                android:name="org.jfet.batsPass.BatsPassProvider.PERMISSION"
+    <permission android:name="org.jfet.batsPass.BatsPassProvider.PERMISSION"
                 android:protectionLevel="signature"
+                android:permissionGroup="android.permission-group.PERSONAL_INFO"
+                android:label="Bats! Password DB Read"
     />
 
     <!-- external and internal storage for actually reading the M3u files -->
@@ -29,7 +29,8 @@
                   android:screenOrientation="portrait"
                   android:alwaysRetainTaskState="false"
                   android:clearTaskOnLaunch="true"
-                  android:stateNotNeeded="true" >
+                  android:stateNotNeeded="true"
+                  android:launchMode="singleTask" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -40,10 +41,10 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 
+                <!-- gmail attachments are content URIs with random filenames, so we don't put a pathPattern here -->
+                <data android:mimeType="application/octet-stream" />
                 <data android:scheme="file" />
                 <data android:scheme="content" />
-                <data android:mimeType="application/octet-stream" />
-                <data android:pathPattern=".*\\.db" />
                 <data android:host="*" />
             </intent-filter>
         </activity>
@@ -66,8 +67,12 @@
 				  android:enabled="true"
 				  android:initOrder="999"
 				  android:label="@string/app_content"
-				  android:multiprocess="false"
-		/>
+				  android:multiprocess="false" >
+           <path-permission
+               android:pathPattern=".*"
+               android:permission="org.jfet.batsPass.BatsPassProvider.PERMISSION" />
+           <grant-uri-permission android:pathPattern=".*" />
+        </provider>
     </application>
 
 </manifest>

@@ -1,16 +1,20 @@
 package org.jfet.batsPass;
 
 import java.io.FileNotFoundException;
+import java.util.List;
+
 import android.content.ContentProvider;
 import android.content.ContentValues;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.ParcelFileDescriptor;
+import android.preference.PreferenceManager;
 
 public class BatsPassProvider extends ContentProvider {
 	final static String authName = "org.jfet.batsPass.BatsPassProvider"; 
-	final static String fileName = "/password.db";
 	final static String mimeType = "application/octet-stream";
+	final static String fileName = "password.db";
 
 	// we return nothing but application/octet-stream
 	public String getType(Uri arg0) {
@@ -18,7 +22,12 @@ public class BatsPassProvider extends ContentProvider {
 	}
 	
 	public ParcelFileDescriptor openFile(Uri uri, String mode) throws FileNotFoundException {
-		if ( (! authName.equals(uri.getAuthority())) || (! fileName.equals(uri.getPath())) ) {
+		final SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(getContext());
+		final List<String> segs = uri.getPathSegments();
+		if ( (! authName.equals(uri.getAuthority())) ||
+			 (2 != segs.size()) ||
+			 (! fileName.equals(segs.get(1))) ||
+			 (! sPrefs.getString("EXPORT","").equals(segs.get(0))) ) {
 			throw new FileNotFoundException("Unshared URI error.");
 		}
 		

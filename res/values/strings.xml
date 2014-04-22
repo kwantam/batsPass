@@ -41,8 +41,6 @@
     <string name="pwlength_title">Password strength</string>
     <string name="pwlength_summary">Length of generated passwords</string>
     <string name="pwlength_default">3</string>
-    <string name="permission_pwcontent">Read Password Database</string>
-    <string name="permission_pwcontent_desc">Read the password database in encrypted form, e.g., for backup purposes.</string>
     <string name="action_about_message">
 Bats Password Manager uses SQLCipher Community Edition, which is made available by Zetectic LLC under the following license:
 \n
