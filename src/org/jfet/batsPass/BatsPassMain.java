@@ -92,16 +92,17 @@ public class BatsPassMain extends Activity implements TextWatcher {
 	
 	// start a timeout when we become visible
 	public void onResume() {
-		super.onResume();
-		startTimer();
 		clearSecrets();
+		startTimer();
+		getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE,WindowManager.LayoutParams.FLAG_SECURE);
+		super.onResume();
 	}
 
 	// kill the timeout when we become invisible, and clearSecrets()
 	public void onPause() {
-		super.onPause();
 		stopTimer();
 		clearSecrets();
+		super.onPause();
 	}
 	
 	// when we are going away, remove the static weakref
@@ -155,6 +156,7 @@ public class BatsPassMain extends Activity implements TextWatcher {
 	private void showPassList() {
 		// go to the password list view
 		setContentView(R.layout.passlist);
+		getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE,WindowManager.LayoutParams.FLAG_SECURE);
 
 		Cursor c = null;
 		try {
@@ -208,6 +210,7 @@ public class BatsPassMain extends Activity implements TextWatcher {
 
 	// clear fragments, return to "login" screen
 	private void clearSecrets() {
+		getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE,WindowManager.LayoutParams.FLAG_SECURE);
 		clearDialog();
 
 		if (null != passDB) {
@@ -701,6 +704,7 @@ public class BatsPassMain extends Activity implements TextWatcher {
 	void showDialog(Dialog d) {
 		clearDialog();
 		activeDialog = new WeakReference<Dialog>(d);
+		d.getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE,WindowManager.LayoutParams.FLAG_SECURE);
 		d.show();
 	}
 
