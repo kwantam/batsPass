@@ -17,6 +17,9 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
 import android.database.CharArrayBuffer;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -97,6 +100,13 @@ public class BatsPassMain extends Activity implements TextWatcher {
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE,WindowManager.LayoutParams.FLAG_SECURE);
 		super.onResume();
 	}
+	
+	// make the thumbnail image all black
+	// FLAG_SECURE should do this, but it is somewhat buggy
+	public boolean onCreateThumbnail (Bitmap b, Canvas c) {
+		b.eraseColor(Color.BLACK);
+		return true;
+	}
 
 	// kill the timeout when we become invisible, and clearSecrets()
 	public void onPause() {
@@ -138,7 +148,7 @@ public class BatsPassMain extends Activity implements TextWatcher {
 			dbRekey();
 			return true;
 		case R.id.action_settings:
-			startActivityForResult(new Intent(this, BatsPassSettings.class), RESULT_SETTINGS);
+			startActivity(new Intent(this, BatsPassSettings.class));
 			return true;
 		case R.id.action_delete:
 			dbDelete();
