@@ -13,6 +13,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
@@ -28,15 +29,19 @@ import android.os.Message;
 import android.preference.PreferenceManager;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import net.sqlcipher.Cursor;
 import net.sqlcipher.database.SQLiteDatabase;
 import net.sqlcipher.database.SQLiteException;
@@ -53,7 +58,8 @@ public class BatsPassMain extends Activity implements TextWatcher {
 
 	static WeakReference<BatsPassMain> bpMain;
 
-	private File databaseFile;
+	private TextView.OnEditorActionListener goAction = null;
+	private File databaseFile = null;
 	private WeakReference<Dialog> activeDialog = null;
 	private SQLiteDatabase passDB = null;
 	Thread sTimeout = null;
@@ -228,8 +234,23 @@ public class BatsPassMain extends Activity implements TextWatcher {
 		}
 		passDB = null;
 
-		setContentView(R.layout.main);		
-		((EditText) findViewById(R.id.password)).addTextChangedListener(this);
+		// make sure we have a listener in place when the user says "go"
+		if (null == goAction) {
+			goAction = new TextView.OnEditorActionListener() {
+				public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+					if (actionId == EditorInfo.IME_ACTION_GO){
+						openDatabase(v);
+						return true;
+					}
+					return false;
+				}
+			};
+		}
+
+		setContentView(R.layout.main);
+		final EditText pwView = (EditText) findViewById(R.id.password);
+		pwView.addTextChangedListener(this);
+		pwView.setOnEditorActionListener(goAction);
 		
 		if ( (! databaseFile.exists()) || ((null != getIntent()) && (null != getIntent().getData())) ) {
 			dbCreate();
@@ -251,6 +272,7 @@ public class BatsPassMain extends Activity implements TextWatcher {
 	// open the database
 	public void openDatabase (View v) {
 		final char[] thePass = BatsKeyDialog.getEditableCharValue(((EditText) findViewById(R.id.password)).getText());
+		((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(v.getWindowToken(), 0);
 
 		if (thePass.length < 1) {
 			return;
