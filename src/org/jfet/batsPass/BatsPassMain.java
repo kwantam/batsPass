@@ -29,6 +29,7 @@ import android.os.Message;
 import android.preference.PreferenceManager;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -52,6 +53,7 @@ public class BatsPassMain extends Activity implements TextWatcher {
 	final static String UID_KEY = "uid";
 	final static String PASS_KEY = "pw";
 	final static String DB_NAME = "pass";
+	final static String SHOW_PASS_ORDER = SERVICE_KEY + "," + UID_KEY + " ASC";
 	final static int RESULT_SETTINGS = 1337;
 	final static int MIN_PASS_LENGTH = 10;
 	final static long dlgTimeout = 40000;
@@ -176,7 +178,7 @@ public class BatsPassMain extends Activity implements TextWatcher {
 
 		Cursor c = null;
 		try {
-			c = passDB.query(DB_NAME,new String[]{ID_KEY,SERVICE_KEY},null,null,null,null,null,null);
+			c = passDB.query(DB_NAME,new String[]{ID_KEY,SERVICE_KEY,UID_KEY},null,null,null,null,SHOW_PASS_ORDER,null);
 		} catch (SQLiteException ex) {
 			c = null;
 		}
@@ -195,9 +197,11 @@ public class BatsPassMain extends Activity implements TextWatcher {
 		do {
 			final Button b = new Button(this);
 			b.setLayoutParams(((ImageButton) findViewById(R.id.addButton)).getLayoutParams());
+			b.setGravity(Gravity.LEFT | Gravity.CENTER_VERTICAL);
 			final String idStr = Integer.toString(c.getInt(0));
 			final String srvStr = c.getString(1);
-			b.setText(srvStr);
+			final String uidStr = c.getString(2);
+			b.setText(srvStr+" : "+uidStr);
 			b.setOnClickListener(new View.OnClickListener() { public void onClick(View v) { showPass(v, idStr); } } );
 			b.setOnLongClickListener(new LongClickMenuListener(idStr,srvStr));
 			ll.addView(b);
