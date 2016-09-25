@@ -8,6 +8,7 @@
     <string name="hint_importpass">Import DB Password</string>
     <string name="wrong_password">Incorrect Password</string>
     <string name="new_button">New</string>
+    <string name="search_button">Search</string>
     <string name="done_string">Done</string>
     <string name="cancel_string">Cancel</string>
     <string name="ok_string">OK</string>
